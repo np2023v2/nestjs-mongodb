@@ -1,0 +1,28 @@
+# Source files
+src/
+test/
+examples/
+
+# Configuration files
+tsconfig.json
+tsconfig.build.json
+.eslintrc.js
+.prettierrc
+jest.config.js
+
+# Development files
+.git/
+.gitignore
+node_modules/
+coverage/
+
+# Documentation (keep only README in package)
+CONTRIBUTING.md
+GETTING_STARTED.md
+
+# Misc
+*.log
+.DS_Store
+.env
+.env.*
+*.tsbuildinfo
