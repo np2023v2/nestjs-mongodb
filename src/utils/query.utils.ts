@@ -3,10 +3,7 @@ import { FilterQuery } from 'mongoose';
 /**
  * Build a search query for text fields
  */
-export function buildTextSearchQuery<T>(
-  searchText: string,
-  fields: string[],
-): FilterQuery<T> {
+export function buildTextSearchQuery<T>(searchText: string, fields: string[]): FilterQuery<T> {
   if (!searchText || !fields.length) {
     return {};
   }

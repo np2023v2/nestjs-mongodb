@@ -1,9 +1,8 @@
-import { DynamicModule, Module, Provider, Type } from '@nestjs/common';
+import { DynamicModule, Module } from '@nestjs/common';
 import { MongooseModule as NestMongooseModule } from '@nestjs/mongoose';
 import {
   MongooseModuleOptions,
   MongooseModuleAsyncOptions,
-  MongooseModuleOptionsFactory,
 } from './interfaces/mongoose-options.interface';
 
 @Module({})
