@@ -14,6 +14,7 @@ export * from './interfaces/mongoose-options.interface';
 // Utils
 export * from './utils/query.utils';
 export * from './utils/connection.utils';
+export * from './utils/aggregate.utils';
 
 // Decorators
 export * from './decorators/inject.decorator';
@@ -29,4 +30,5 @@ export type {
   QueryOptions,
   Connection,
   Schema as MongooseSchema,
+  PipelineStage,
 } from 'mongoose';

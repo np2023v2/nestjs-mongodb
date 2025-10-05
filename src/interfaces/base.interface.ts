@@ -1,4 +1,4 @@
-import { FilterQuery, UpdateQuery, QueryOptions } from 'mongoose';
+import { FilterQuery, UpdateQuery, QueryOptions, PipelineStage } from 'mongoose';
 
 export interface BaseEntity {
   _id?: any;
@@ -35,4 +35,5 @@ export interface BaseRepositoryInterface<T> {
   deleteMany(filter: FilterQuery<T>): Promise<number>;
   count(filter?: FilterQuery<T>): Promise<number>;
   exists(filter: FilterQuery<T>): Promise<boolean>;
+  aggregate<R = any>(pipeline: PipelineStage[]): Promise<R[]>;
 }
