@@ -324,6 +324,56 @@ console.log(result.totalPages); // Total pages
 
 MIT
 
+## Development
+
+### Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/np2023v2/nestjs-mongodb.git
+cd nestjs-mongodb
+
+# Install dependencies
+npm install
+
+# Build the project
+npm run build
+
+# Run tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run tests with coverage
+npm run test:cov
+
+# Lint code
+npm run lint
+
+# Format code
+npm run format
+```
+
+### Publishing
+
+See [PUBLISHING.md](./PUBLISHING.md) for detailed instructions on how to publish this package to npm.
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
+
+### How to Contribute
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+### Guidelines
+
+- Write tests for new features
+- Ensure all tests pass before submitting PR
+- Follow the existing code style
+- Update documentation as needed
