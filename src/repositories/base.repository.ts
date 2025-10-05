@@ -1,4 +1,4 @@
-import { Model, FilterQuery, UpdateQuery, QueryOptions } from 'mongoose';
+import { Model, FilterQuery, UpdateQuery, QueryOptions, PipelineStage } from 'mongoose';
 import {
   BaseRepositoryInterface,
   PaginationOptions,
@@ -76,5 +76,9 @@ export class BaseRepository<T> implements BaseRepositoryInterface<T> {
   async exists(filter: FilterQuery<T>): Promise<boolean> {
     const count = await this.model.countDocuments(filter).limit(1).exec();
     return count > 0;
+  }
+
+  async aggregate<R = any>(pipeline: PipelineStage[]): Promise<R[]> {
+    return this.model.aggregate<R>(pipeline).exec();
   }
 }

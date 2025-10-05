@@ -8,6 +8,7 @@ A comprehensive NestJS module for MongoDB with common models, repositories, and 
 - 📦 **Base Model** - Common base model with timestamps and automatic transformations
 - 🗂️ **Base Repository** - Full-featured repository pattern with common operations
 - 🔍 **Query Utilities** - Helper functions for building complex queries
+- 📊 **Aggregation Support** - Fluent API for building MongoDB aggregation pipelines
 - 🔌 **Connection Utilities** - Tools for managing MongoDB connections
 - 📄 **Pagination Support** - Built-in pagination with customizable options
 - 🎯 **TypeScript** - Full TypeScript support with type definitions
@@ -195,6 +196,7 @@ The `BaseRepository` class provides the following methods:
 - **`deleteMany(filter: FilterQuery<T>): Promise<number>`** - Delete multiple documents
 - **`count(filter?: FilterQuery<T>): Promise<number>`** - Count documents
 - **`exists(filter: FilterQuery<T>): Promise<boolean>`** - Check if document exists
+- **`aggregate<R = any>(pipeline: PipelineStage[]): Promise<R[]>`** - Execute aggregation pipeline
 
 ### Query Utilities
 
@@ -229,6 +231,62 @@ const projection = buildProjection(['name', 'email']);
 
 // Build sort object
 const sort = buildSortObject(['name', '-createdAt']); // { name: 1, createdAt: -1 }
+```
+
+### Aggregation Utilities
+
+```typescript
+import { AggregateBuilder, createAggregateBuilder } from '@np2023v2/nestjs-mongodb';
+
+// Create an aggregate builder
+const builder = createAggregateBuilder();
+
+// Build a simple aggregation pipeline
+const pipeline = builder
+  .match({ status: 'active' })
+  .group({
+    _id: '$category',
+    count: { $sum: 1 },
+    avgAge: { $avg: '$age' },
+  })
+  .sort({ count: -1 })
+  .limit(5)
+  .build();
+
+// Execute the aggregation
+const results = await userRepository.aggregate(pipeline);
+
+// Or build complex pipelines with lookups
+const ordersPipeline = builder
+  .match({ status: 'active' })
+  .lookup({
+    from: 'orders',
+    localField: '_id',
+    foreignField: 'userId',
+    as: 'orders',
+  })
+  .unwind('$orders')
+  .group({
+    _id: '$_id',
+    totalOrders: { $sum: 1 },
+    totalAmount: { $sum: '$orders.amount' },
+  })
+  .build();
+
+// Available methods:
+// - match(filter) - Add $match stage
+// - group(groupBy) - Add $group stage
+// - sort(sortBy) - Add $sort stage
+// - project(projection) - Add $project stage
+// - limit(count) - Add $limit stage
+// - skip(count) - Add $skip stage
+// - lookup(options) - Add $lookup stage for joins
+// - unwind(path) - Add $unwind stage
+// - count(fieldName) - Add $count stage
+// - addFields(fields) - Add $addFields stage
+// - addStage(stage) - Add custom stage
+// - build() - Get the pipeline array
+// - reset() - Reset the builder
 ```
 
 ### Connection Utilities
@@ -309,6 +367,57 @@ console.log(result.total); // Total count
 console.log(result.page); // Current page
 console.log(result.limit); // Items per page
 console.log(result.totalPages); // Total pages
+```
+
+### Aggregation Example
+
+```typescript
+@Injectable()
+export class UserService {
+  constructor(private readonly userRepository: UserRepository) {}
+
+  async getUserStatsByCategory() {
+    const pipeline = createAggregateBuilder()
+      .match({ isActive: true })
+      .group({
+        _id: '$category',
+        totalUsers: { $sum: 1 },
+        avgAge: { $avg: '$age' },
+        minAge: { $min: '$age' },
+        maxAge: { $max: '$age' },
+      })
+      .sort({ totalUsers: -1 })
+      .build();
+
+    return this.userRepository.aggregate(pipeline);
+  }
+
+  async getUsersWithOrderStats() {
+    const pipeline = createAggregateBuilder()
+      .match({ status: 'active' })
+      .lookup({
+        from: 'orders',
+        localField: '_id',
+        foreignField: 'userId',
+        as: 'orders',
+      })
+      .addFields({
+        orderCount: { $size: '$orders' },
+        totalSpent: { $sum: '$orders.amount' },
+      })
+      .project({
+        name: 1,
+        email: 1,
+        orderCount: 1,
+        totalSpent: 1,
+      })
+      .sort({ totalSpent: -1 })
+      .limit(10)
+      .build();
+
+    return this.userRepository.aggregate(pipeline);
+  }
+}
 ```
 
 ## Best Practices
