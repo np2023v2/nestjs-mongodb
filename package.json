@@ -4,14 +4,31 @@
   "description": "NestJS MongoDB module with common models, repositories, and utilities",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.d.ts",
+    "dist/**/*.js.map",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "prepublishOnly": "npm run build && npm test",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "lint": "eslint \"{src,test}/**/*.ts\" --fix",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\""
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/np2023v2/nestjs-mongodb.git"
+  },
+  "bugs": {
+    "url": "https://github.com/np2023v2/nestjs-mongodb/issues"
+  },
+  "homepage": "https://github.com/np2023v2/nestjs-mongodb#readme",
   "keywords": [
     "nestjs",
     "mongodb",
@@ -20,11 +37,12 @@
     "model",
     "database"
   ],
-  "author": "",
+  "author": "np2023v2",
   "license": "MIT",
   "peerDependencies": {
     "@nestjs/common": "^9.0.0 || ^10.0.0",
     "@nestjs/core": "^9.0.0 || ^10.0.0",
+    "@nestjs/mongoose": "^10.0.0 || ^11.0.0",
     "mongoose": "^7.0.0 || ^8.0.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.0.0"
@@ -48,8 +66,5 @@
     "rxjs": "^7.8.0",
     "ts-jest": "^29.1.0",
     "typescript": "^5.0.0"
-  },
-  "dependencies": {
-    "@nestjs/mongoose": "^11.0.3"
   }
 }
