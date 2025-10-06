@@ -11,6 +11,7 @@ A comprehensive NestJS module for MongoDB with common models, repositories, and 
 - 📊 **Aggregation Support** - Fluent API for building MongoDB aggregation pipelines
 - 🔌 **Connection Utilities** - Tools for managing MongoDB connections
 - 📄 **Pagination Support** - Built-in pagination with customizable options
+- 🔄 **CDC Service** - Change Data Capture with MongoDB Change Streams
 - 🎯 **TypeScript** - Full TypeScript support with type definitions
 - ✨ **Decorators** - Convenient decorators for dependency injection
 
@@ -324,6 +325,72 @@ await waitForConnection(connection, 30000);
 await closeConnection(connection);
 ```
 
+### CDC Service
+
+The `BaseCdcService` class provides Change Data Capture functionality using MongoDB Change Streams:
+
+```typescript
+import { BaseCdcService, CdcEventHandler, CdcChangeEvent } from '@np2023v2/nestjs-mongodb';
+
+// Extend BaseCdcService for your entity
+class MyCdcService extends BaseCdcService<MyEntity> {
+  constructor(model: Model<MyEntity>) {
+    super(model, {
+      fullDocument: 'updateLookup', // 'default' | 'updateLookup' | 'whenAvailable' | 'required'
+      autoReconnect: true,
+      reconnectDelay: 1000,
+      maxReconnectAttempts: 5,
+      pipeline: [], // Optional filter pipeline
+      batchSize: 100,
+      maxAwaitTimeMS: 1000,
+    });
+  }
+  
+  // Override methods to handle specific operations
+  protected async handleInsert(event: CdcChangeEvent<MyEntity>): Promise<void> {
+    // Handle insert
+  }
+  
+  protected async handleUpdate(event: CdcChangeEvent<MyEntity>): Promise<void> {
+    // Handle update
+  }
+  
+  protected async handleDelete(event: CdcChangeEvent<MyEntity>): Promise<void> {
+    // Handle delete
+  }
+}
+```
+
+#### BaseCdcService Methods
+
+- **`start(): Promise<void>`** - Start watching for changes
+- **`stop(): Promise<void>`** - Stop watching for changes
+- **`isWatching(): boolean`** - Check if currently watching
+- **`registerHandler(handler: CdcEventHandler): void`** - Register an event handler
+- **`unregisterHandler(handler: CdcEventHandler): void`** - Unregister an event handler
+- **`getResumeToken(): any`** - Get current resume token for resuming from a specific point
+
+#### CdcEventHandler Interface
+
+```typescript
+interface CdcEventHandler<T> {
+  onEvent(event: CdcChangeEvent<T>): Promise<void> | void;
+  onError?(error: Error): Promise<void> | void;
+  onClose?(): Promise<void> | void;
+}
+```
+
+#### Change Operation Types
+
+- `INSERT` - Document inserted
+- `UPDATE` - Document updated
+- `REPLACE` - Document replaced
+- `DELETE` - Document deleted
+- `DROP` - Collection dropped
+- `RENAME` - Collection renamed
+- `DROP_DATABASE` - Database dropped
+- `INVALIDATE` - Change stream invalidated
+
 ## Advanced Usage
 
 ### Custom Query Example
@@ -420,6 +487,87 @@ export class UserService {
 }
 ```
 
+### CDC (Change Data Capture) Example
+
+The CDC service allows you to monitor and react to changes in your MongoDB collections using Change Streams.
+
+```typescript
+import { Injectable, OnModuleInit } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { BaseCdcService, CdcChangeEvent } from '@np2023v2/nestjs-mongodb';
+import { User } from './user.model';
+
+@Injectable()
+export class UserCdcService extends BaseCdcService<User> implements OnModuleInit {
+  constructor(@InjectModel(User.name) userModel: Model<User>) {
+    super(userModel, {
+      fullDocument: 'updateLookup', // Get full document on updates
+      autoReconnect: true,
+      reconnectDelay: 2000,
+      maxReconnectAttempts: 10,
+    });
+  }
+
+  async onModuleInit(): Promise<void> {
+    await this.start();
+  }
+
+  protected async handleInsert(event: CdcChangeEvent<User>): Promise<void> {
+    console.log('New user created:', event.fullDocument);
+    // Send welcome email, create profile, etc.
+  }
+
+  protected async handleUpdate(event: CdcChangeEvent<User>): Promise<void> {
+    console.log('User updated:', event.documentKey);
+    // Invalidate cache, send notifications, etc.
+  }
+
+  protected async handleDelete(event: CdcChangeEvent<User>): Promise<void> {
+    console.log('User deleted:', event.documentKey);
+    // Clean up related data, etc.
+  }
+}
+```
+
+#### Using Event Handlers
+
+You can also register external event handlers for more complex scenarios:
+
+```typescript
+import { CdcEventHandler, CdcChangeEvent } from '@np2023v2/nestjs-mongodb';
+
+@Injectable()
+export class UserAuditHandler implements CdcEventHandler<User> {
+  constructor(private readonly auditService: AuditService) {}
+
+  async onEvent(event: CdcChangeEvent<User>): Promise<void> {
+    await this.auditService.logChange({
+      collection: 'users',
+      operation: event.operationType,
+      documentId: event.documentKey?._id,
+    });
+  }
+
+  async onError(error: Error): Promise<void> {
+    console.error('CDC error:', error);
+  }
+}
+
+// In your module
+@Module({
+  providers: [UserCdcService, UserAuditHandler],
+})
+export class UserModule {
+  constructor(
+    private readonly userCdcService: UserCdcService,
+    private readonly auditHandler: UserAuditHandler,
+  ) {
+    this.userCdcService.registerHandler(this.auditHandler);
+  }
+}
+```
+
 ## Best Practices
 
 1. **Always extend BaseModel** for your entities to get automatic timestamps and transformations
@@ -427,6 +575,7 @@ export class UserService {
 3. **Leverage query utilities** to build complex, reusable queries
 4. **Handle ObjectId validation** before querying to avoid errors
 5. **Use pagination** for large datasets to improve performance
+6. **Use CDC services** to react to database changes in real-time
 6. **Close connections properly** when shutting down your application
 
 ## License

@@ -10,6 +10,10 @@ export * from './repositories/base.repository';
 // Interfaces
 export * from './interfaces/base.interface';
 export * from './interfaces/mongoose-options.interface';
+export * from './interfaces/cdc.interface';
+
+// Services
+export * from './services/base-cdc.service';
 
 // Utils
 export * from './utils/query.utils';
